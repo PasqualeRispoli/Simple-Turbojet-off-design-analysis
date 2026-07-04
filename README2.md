@@ -8,24 +8,24 @@ This document contains the mathematical and thermodynamic formulation for the De
 
 ## Geometry & Operating Conditions
 
-- $A_1$: Compressor inlet area
-- $A_e$: Exhaust nozzle exit area ($A_5$)
-- $M_0,\; p_0,\; T_0$: Free-stream flight Mach number, static pressure, and static temperature
-- $\dot{m}_f$: Fuel mass flow rate
-- $Q_f$: Fuel lower heating value (LHV)
+- $A_1$: Compressor inlet area  
+- $A_e$: Exhaust nozzle exit area ($A_5$)  
+- $M_0, p_0, T_0$: Free-stream Mach number, static pressure, static temperature  
+- $\dot{m}_f$: Fuel mass flow rate  
+- $Q_f$: Fuel lower heating value  
 
 ## Fluid Properties & Efficiencies
 
-- $\gamma,\; c_p$: Ratio of specific heats and specific heat at constant pressure for ambient/compressor air
-- $\gamma',\; c_p'$: Thermodynamic properties for burned gases
-- $\eta_{\mathrm{IN}},\; \eta_N$: Intake and nozzle isentropic efficiencies
-- $T_{\mathrm{ref}},\; p_{\mathrm{ref}}$: Reference conditions for corrected maps
+- $\gamma, c_p$: Ambient/compressor gas properties  
+- $\gamma', c_p'$: Combustion gas properties  
+- $\eta_{\mathrm{IN}}, \eta_N$: Intake and nozzle efficiencies  
+- $T_{\mathrm{ref}}, p_{\mathrm{ref}}$: Reference conditions  
 
 ---
 
 # 📈 1. Design Point (DP) Analysis
 
-## Free-Stream Stagnation Conditions
+## Free-stream stagnation
 
 $$
 T_{00}=T_0\left(1+\frac{\gamma-1}{2}M_0^2\right)
@@ -37,189 +37,90 @@ $$
 
 ---
 
-## Intake (Station 0 → 1)
+## Intake
 
 $$
-T_{10}=T_{00},
-\qquad
-p_{10}=p_{00}
+T_{10}=T_{00}, \quad p_{10}=p_{00}
 $$
 
 ---
 
-## Compressor (Station 1 → 2)
-
-Given
+## Compressor
 
 $$
-\pi_C=10,
-\qquad
-\eta_C=0.85
+\pi_C=10, \quad \eta_C=0.85
 $$
 
 $$
-\tau_C
-=
-1+
-\frac{1}{\eta_C}
-\left(
-\pi_C^{\frac{\gamma-1}{\gamma}}
--1
-\right)
+\tau_C = 1 + \frac{1}{\eta_C}\left(\pi_C^{\frac{\gamma-1}{\gamma}} - 1\right)
 $$
 
 $$
-T_{20}=\tau_C T_{10}
-$$
-
-$$
-p_{20}=\pi_C p_{10}
+T_{20}=\tau_C T_{10}, \quad p_{20}=\pi_C p_{10}
 $$
 
 ---
 
-## Combustion Chamber
+## Combustor
 
 $$
 p_{30}=p_{20}
 $$
 
 $$
-T_{30}
-=
-\frac{
-fQ_f+c_pT_{20}
-}{
-(1+f)c_p'
-}
+T_{30}=\frac{fQ_f + c_p T_{20}}{(1+f)c_p'}
 $$
 
 $$
-\tau_B=\frac{T_{30}}{T_{20}},
-\qquad
-\pi_B=\frac{p_{30}}{p_{20}}=1
+\tau_B=\frac{T_{30}}{T_{20}}, \quad \pi_B=1
 $$
 
 ---
 
 ## Turbine
 
-Power balance
-
 $$
-(1+f)c_p'
-(T_{30}-T_{40})
-=
-c_p
-(T_{20}-T_{10})
-$$
-
-Temperature ratio
-
-$$
-\tau_T
-=
-1-
-\frac{
-c_p
-}{
-c_p'
-\tau_B
-(1+f)
-}
-\left(
-1-\frac1{\tau_C}
-\right)
-$$
-
-Pressure ratio
-
-$$
-\pi_T
-=
-\left[
-1-
-\frac1{\eta_T}
-(1-\tau_T)
-\right]^{\frac{\gamma'}{\gamma'-1}}
+(1+f)c_p'(T_{30}-T_{40}) = c_p(T_{20}-T_{10})
 $$
 
 $$
-T_{40}=\tau_TT_{30}
+\tau_T = 1 - \frac{c_p}{c_p' \tau_B (1+f)}\left(1-\frac{1}{\tau_C}\right)
 $$
 
 $$
-p_{40}=\pi_Tp_{30}
+\pi_T = \left[1 - \frac{1}{\eta_T}(1-\tau_T)\right]^{\frac{\gamma'}{\gamma'-1}}
+$$
+
+$$
+T_{40}=\tau_T T_{30}, \quad p_{40}=\pi_T p_{30}
 $$
 
 ---
 
-## Exhaust Nozzle
+## Nozzle
 
 $$
-T_{50}=T_{40},
-\qquad
-p_{50}=p_{40}
+T_{50}=T_{40}, \quad p_{50}=p_{40}
 $$
 
-Expansion ratio
-
 $$
-\beta=\frac{p_a}{p_{50}}
+\beta=\frac{p_a}{p_{50}}, \quad \beta^*=\left(\frac{\gamma'+1}{2}\right)^{-\frac{\gamma'}{\gamma'-1}}
 $$
 
-Critical pressure ratio
-
-$$
-\beta^*
-=
-\left(
-\frac{\gamma'+1}{2}
-\right)^{-\frac{\gamma'}{\gamma'-1}}
-$$
-
-### Unchoked nozzle
-
-If
-
-$$
-\beta>\beta^*
-$$
-
-then
+### Unchoked
 
 $$
 p_5=p_a
 $$
 
 $$
-M_5
-=
-\sqrt{
-\frac{2}{\gamma'-1}
-\left[
-\left(\frac1\beta\right)^{\frac{\gamma'-1}{\gamma'}}
--1
-\right]
-}
+M_5=\sqrt{\frac{2}{\gamma'-1}\left[\left(\frac{1}{\beta}\right)^{\frac{\gamma'-1}{\gamma'}}-1\right]}
 $$
 
-### Choked nozzle
-
-If
+### Choked
 
 $$
-\beta\le\beta^*
-$$
-
-then
-
-$$
-p_5=p^*=p_{50}\beta^*
-$$
-
-$$
-M_5=1
+p_5=p_{50}\beta^*, \quad M_5=1
 $$
 
 ---
@@ -229,41 +130,23 @@ $$
 ## Compressor
 
 $$
-\dot{m}_a
-=
-\dot{m}_C
-\frac{\delta_1}{\sqrt{\theta_1}}
+\dot{m}_a=\dot{m}_C \frac{\delta_1}{\sqrt{\theta_1}}
 $$
 
 $$
-\pi_C
-=
-\mathrm{map}_C(\dot{m}_C,N_C)
+\pi_C=\mathrm{map}_C(\dot{m}_C, N_C)
 $$
 
 $$
-\eta_C
-=
-\mathrm{map}_C(\pi_C,N_C)
+\eta_C=\mathrm{map}_C(\pi_C, N_C)
 $$
 
 $$
-\tau_C
-=
-1+
-\frac1{\eta_C}
-\left(
-\pi_C^{\frac{\gamma-1}{\gamma}}
--1
-\right)
+\tau_C=1+\frac{1}{\eta_C}\left(\pi_C^{\frac{\gamma-1}{\gamma}}-1\right)
 $$
 
 $$
-T_{20}=\tau_CT_{10}
-$$
-
-$$
-p_{20}=\pi_Cp_{10}
+T_{20}=\tau_C T_{10}, \quad p_{20}=\pi_C p_{10}
 $$
 
 ---
@@ -271,33 +154,19 @@ $$
 ## Combustor
 
 $$
-T_{30}
-=
-\tau_{\mathrm{th}}T_{10}
+T_{30}=\tau_{\mathrm{th}} T_{10}
 $$
 
 $$
-f
-=
-\frac{
-c_p'T_{30}
--
-c_pT_{20}
-}{
-Q_f-c_p'T_{30}
-}
+f=\frac{c_p' T_{30}-c_p T_{20}}{Q_f - c_p' T_{30}}
 $$
 
 $$
-\dot{m}_{gc}
-=
-(1+f)\dot{m}_a
+\dot{m}_{gc}=(1+f)\dot{m}_a
 $$
 
 $$
-p_{30}
-=
-\pi_Bp_{20}
+p_{30}=\pi_B p_{20}
 $$
 
 ---
@@ -305,51 +174,23 @@ $$
 ## Turbine
 
 $$
-N_T
-=
-N_C
-\sqrt{
-\frac{
-\tau_{\mathrm{th,des}}
-}{
-\tau_{\mathrm{th}}
-}
-}
+N_T = N_C \sqrt{\frac{\tau_{\mathrm{th,des}}}{\tau_{\mathrm{th}}}}
 $$
 
 $$
-\dot{m}_T
-=
-\mathrm{map}_T(\pi_T,N_T)
+\dot{m}_T=\mathrm{map}_T(\pi_T, N_T)
 $$
 
 $$
-\eta_T
-=
-\mathrm{map}_T(\pi_T,N_T)
+\eta_T=\mathrm{map}_T(\pi_T, N_T)
 $$
 
 $$
-\tau_T
-=
-1-
-\eta_T
-\left(
-1-
-\pi_T^{\frac{\gamma'-1}{\gamma'}}
-\right)
+\tau_T=1-\eta_T\left(1-\pi_T^{\frac{\gamma'-1}{\gamma'}}\right)
 $$
 
 $$
-T_{40}
-=
-\tau_TT_{30}
-$$
-
-$$
-p_{40}
-=
-\pi_Tp_{30}
+T_{40}=\tau_T T_{30}, \quad p_{40}=\pi_T p_{30}
 $$
 
 ---
@@ -364,92 +205,52 @@ $$
 p_{50}=p_{40}\pi_N
 $$
 
-Applying the same sonic choking logic ($\beta$ vs $\beta^*$), the physical properties at the nozzle exit are
-
 $$
-T_5
-=
-\frac{
-T_{50}
-}{
-1+\frac{\gamma'-1}{2}M_5^2
-}
+T_5=\frac{T_{50}}{1+\frac{\gamma'-1}{2}M_5^2}
 $$
 
 $$
-a_5
-=
-\sqrt{\gamma'R'T_5}
+a_5=\sqrt{\gamma' R' T_5}
 $$
 
 $$
-V_5
-=
-M_5a_5
+V_5=M_5 a_5
 $$
 
 ---
 
 # ⚖️ 3. Matching Equations
 
-### Turbine Mass Flow Continuity
+## Turbine mass flow
 
 $$
-\dot{m}_{T,\mathrm{map}}
-=
-\dot{m}_{gc}
-\frac{\sqrt{\theta_3}}{\delta_3}
+\dot{m}_{T,\mathrm{map}}=\dot{m}_{gc}\frac{\sqrt{\theta_3}}{\delta_3}
 $$
 
-### Nozzle Area Consistency
+## Nozzle area
 
 $$
-A_5
-=
-\frac{
-\dot{m}_{gc}
-}{
-\rho_5V_5
-}
-=
-A_{5,\mathrm{DP}}
+A_5=\frac{\dot{m}_{gc}}{\rho_5 V_5}=A_{5,\mathrm{DP}}
 $$
 
-### Shaft Power Balance
+## Shaft balance
 
 $$
-\dot{m}_a
-c_p
-(T_{20}-T_{10})
-=
-\dot{m}_{gc}
-c_p'
-(T_{30}-T_{40})
+\dot{m}_a c_p (T_{20}-T_{10})=\dot{m}_{gc} c_p'(T_{30}-T_{40})
 $$
 
 ---
 
 # 🚀 4. Performance Metrics
 
-## Net Thrust
+## Net thrust
 
 $$
-S
-=
-\dot{m}_a
-\left[
-(1+f)V_5
--
-V_0
-\right]
-+
-A_e(p_5-p_0)
+S=\dot{m}_a\left[(1+f)V_5 - V_0\right]+A_e(p_5-p_0)
 $$
 
-## Thrust Specific Fuel Consumption (TSFC)
+## TSFC
 
 $$
-\mathrm{TSFC}
-=
-\frac{\dot{m}_f}{S}
+\mathrm{TSFC}=\frac{\dot{m}_f}{S}
 $$
