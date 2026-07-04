@@ -63,7 +63,7 @@ $$\tau_C = 1 + \frac{1}{\eta_C} \left( \pi_C^{\frac{\gamma - 1}{\gamma}} - 1 \ri
 $$T_{2,0} = \tau_C \cdot T_{1,0}$$
 
 ### Combustion Chamber (CC)
-Given the fuel-to-air ratio $f = \frac{\dot{m}_f}{\dot{m}_a}$, the combustor is modeled as ideal without total pressure losses ($\pi_B = 1$). The turbine inlet total temperature $T_{3,0}$ is found directly from the enthalpy energy balance:
+Given the fuel-to-air ratio $f = \frac{\dot{m}_f}{\dot{m}_a}$ , the combustor is modeled as ideal without total pressure losses ( $\pi_B = 1$ ). The turbine inlet total temperature $T_{3,0}$ is found directly from the enthalpy energy balance:
 $$p_{3,0} = p_{2,0}$$
 
 $$\dot{m}_a c_p T_{2,0} + \dot{m}_f Q_f = (\dot{m}_a + \dot{m}_f) c_{p,\text{gc}} T_{3,0} \implies T_{3,0} = \frac{f Q_f + c_p T_{2,0}}{(1 + f) c_{p,\text{gc}}}$$
@@ -180,8 +180,9 @@ A physically consistent steady-state operating condition is established if and o
    
    $$f_1 = \frac{\dot{m}_{T,\text{map}} - \dot{m}_{T,\text{cycle}}}{\dot{m}_{T,\text{dp}}} = 0$$
 
-3. **Nozzle Area Geometric Compatibility Error ($f_2$):**
-   The exhaust area required to expand the operational gas volume under current Off-Design constraints ($A_{5,\text{OD}}$) must match the unalterable physical throat dimension established during cycle design ($A_{5,\text{dp}}$):
+3. **Nozzle Area Geometric Compatibility Error ( $f_2$ ):** 
+
+   The exhaust area required to expand the operational gas volume under current Off-Design constraints ($A_{5,\text{OD}}$) must match the unalterable physical throat dimension established during cycle design ( $A_{5,\text{dp}}$ ):
    
    $$f_2 = \frac{A_{5,\text{dp}} - A_{5,\text{OD}}}{A_{5,\text{dp}}} = 0$$
 
@@ -223,6 +224,7 @@ $$J = \begin{bmatrix}
 \end{bmatrix}$$
 
 Matrix inversion and correction steps are computed efficiently via `scipy.linalg.solve()`, ensuring high stability and preventing numerical accumulation errors. The iteration loop terminates cleanly once the standard $L_2$ error norm meets a stringent absolute tolerance:
+
 $$\|F(X)\|_2 < 10^{-14}$$
 
 ---
