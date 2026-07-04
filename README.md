@@ -1,200 +1,191 @@
-# Simple Turbojet Off-Design Analysis
+# Technical Documentation: Single Spool Turbojet Simulation Model
 
-A Python-based simulation tool for analyzing single-spool turbojet performance at both design point and off-design operating conditions. This code implements thermodynamic analysis of turbojet components and map-based off-design solution methods.
+This document provides a rigorous, comprehensive, and error-free technical reference for the thermodynamic simulation model of a single-spool turbojet engine. It details the Python software architecture, underlying physical principles, governing equations for both **Design Point (DP)** and **Off-Design (OD)** conditions, component map scaling methodology, and the multidimensional numerical convergence solver based on the Newton-Raphson method.
 
-## Overview
+---
 
-This project performs detailed thermodynamic analysis of a turbojet engine consisting of:
-- **Inlet**: Compresses incoming air at flight conditions
-- **Compressor**: Increases air pressure and temperature
-- **Combustor (CC)**: Burns fuel to heat the air
-- **Turbine**: Expands hot gases to drive the compressor
-- **Nozzle**: Accelerates exhaust gases for thrust generation
+## 1. Software Architecture and Modularity
 
-The analysis includes both:
-1. **Design Point (DP)**: Reference operating condition where all parameters are specified
-2. **Off-Design (OD)**: Arbitrary operating conditions solved using Newton-Raphson iteration
+The simulator is built with a modular, object-oriented structure across three interdependent Python scripts:
 
-## Design Point Analysis
-
-### Input Parameters
-
-```python
-# Input parameters (Python-friendly names)
-M_0   = 0.7              # Mach number at inlet
-p_0   = 41059            # Pa (static pressure at sea level)
-T_0   = 242              # K (static temperature at sea level)
-mdot_a = 20.0            # kg/s (air mass flow rate)
-pi_C  = 8.3              # Compressor pressure ratio
-eta_C = 0.822            # Compressor isentropic efficiency
-eta_T = 0.88             # Turbine isentropic efficiency
-f     = 0.02             # Fuel-to-air ratio
-Q_f   = 43.26e6          # J/kg (fuel lower heating value = 43.26 MJ/kg)
+```
+├── MAIN_SP.py            # Main script: resolves cycle thermodynamics, DP matching, and the OD solver loop.
+├── Compressor_map.py     # Compressor module: stores raw map data, applies scaling, and performs Pchip splines.
+└── Turbine_map.py        # Turbine module: stores raw map data, applies scaling, and performs Pchip splines.
 ```
 
-### Thermodynamic Properties
-
-| Property | Value | Unit |
-|----------|-------|------|
-| γ (air) | 1.4 | - |
-| γ_gc (hot gas) | 1.33 | - |
-| R (air) | 287 | J/(kg·K) |
-| R_gc (hot gas) | 293 | J/(kg·K) |
-| c_p (air) | 1004 | J/(kg·K) |
-| c_{p,\mathrm{gc}} (hot gas) | 1184 | J/(kg·K) |
-| T_ref | 273 | K |
-| p_ref | 101315 | Pa |
+### Engine Thermodynamic Stations
+The flow path follows the standard gas turbine station numbering convention:
+* **Station 0**: Ambient/Freestream conditions (static flight environment).
+* **Station 1**: Compressor Inlet (stagnation properties after the intake duct).
+* **Station 2**: Compressor Discharge / Combustor Inlet.
+* **Station 3**: Combustor Discharge / Turbine Inlet.
+* **Station 4**: Turbine Discharge / Exhaust Nozzle Inlet.
+* **Station 5**: Nozzle Exit Plane (choked or expanded static state).
 
 ---
 
-## Stage 0: Inlet (Ramjet Effect)
+## 2. Gas Properties and Global Constants
 
-Incoming air is compressed to stagnation conditions:
+To achieve high physical fidelity, the model accounts for the variations in specific heat and molecular composition between the clean air compression phase and the post-combustion gas expansion phase:
 
-**Sound speed:**
+| Variable | Symbol | Value | Unit | Application Domain |
+| :--- | :--- | :--- | :--- | :--- |
+| `T_ref` | $T_{ref}$ | $273.0$ | $\text{K}$ | Standard reference temperature for corrected parameters |
+| `p_ref` | $p_{ref}$ | $101315.0$ | $\text{Pa}$ | Standard reference pressure for corrected parameters |
+| `cp` | $c_p$ | $1004.0$ | $\text{J}/(\text{kg}\cdot\text{K})$ | Specific heat at constant pressure - Air (Stations 0 to 2) |
+| `cp_gc` | $c_{p,gc}$ | $1184.0$ | $\text{J}/(\text{kg}\cdot\text{K})$ | Specific heat at constant pressure - Gas Burned (Stations 3 to 5) |
+| `gamma` | $\gamma$ | $1.40$ | $-$ | Ratio of specific heats - Air (Stations 0 to 2) |
+| `gamma_gc` | $\gamma_{gc}$ | $1.33$ | $-$ | Ratio of specific heats - Gas Burned (Stations 3 to 5) |
+| `R` | $R$ | $287.0$ | $\text{J}/(\text{kg}\cdot\text{K})$ | Gas constant for air |
+| `R_gc` | $R_{gc}$ | $293.0$ | $\text{J}/(\text{kg}\cdot\text{K})$ | Gas constant for combustion products |
+| `Q_f` | $Q_f$ | $43260000.0$ | $\text{J}/\text{kg}$ | Lower heating value of aviation fuel (Jet-A) |
+
+---
+
+## 3. Design Point (DP) Modeling
+
+During Design Point synthesis, geometric restrictions are absent, and engine parameters are derived from targeted nominal cycle selections. The `DesignPoint()` function solves the thermodynamic cycle analytically.
+
+### Flight Conditions and Intake
+Given the flight Mach number $M_0$, ambient static pressure $p_0$, and ambient static temperature $T_0$, the stagnation conditions at the compressor face (Station 1) are derived assuming an ideal ram recovery process (isobaric intake, $\pi_{IN} = 1$):
 $$a_0 = \sqrt{\gamma R T_0}$$
-
-**Velocity:**
 $$V_0 = M_0 \cdot a_0$$
+$$T_{0,0} = T_{1,0} = T_0 \left( 1 + \frac{\gamma - 1}{2} M_0^2 \right)$$
+$$p_{0,0} = p_{1,0} = p_0 \left( 1 + \frac{\gamma - 1}{2} M_0^2 \right)^{\frac{\gamma}{\gamma - 1}}$$
 
-**Stagnation pressure:**
-$$p_{0,0} = p_0 \left(1 + \frac{\gamma-1}{2} M_0^2\right)^{\frac{\gamma}{\gamma-1}}$$
-
-**Stagnation temperature:**
-$$T_{0,0} = T_0 \left(1 + \frac{\gamma-1}{2} M_0^2\right)$$
-
-**Inlet air density:**
-$$\rho_0 = \frac{p_0}{R T_0}$$
-
-**Inlet area:**
-$$A_0 = \frac{\dot{m}_a}{\rho_0 V_0}$$
-
----
-
-## Stage 1-2: Compressor
-
-**Compressor temperature ratio:**
-$$\tau_C = 1 + \frac{1}{\eta_C}\left(\pi_C^{\frac{\gamma-1}{\gamma}} - 1\right)$$
-
-**Stagnation temperature at compressor exit:**
+### Compression System
+With the design pressure ratio $\pi_C$ and compressor isentropic efficiency $\eta_C$ specified, the stagnation state at Station 2 is determined by:
+$$p_{2,0} = \pi_C \cdot p_{1,0}$$
+$$\tau_C = 1 + \frac{1}{\eta_C} \left( \pi_C^{\frac{\gamma - 1}{\gamma}} - 1 \right)$$
 $$T_{2,0} = \tau_C \cdot T_{1,0}$$
 
-**Stagnation pressure at compressor exit:**
-$$p_{2,0} = \pi_C \cdot p_{1,0}$$
-
-**Corrected mass flow (compressor):**
-$$\dot{m}_{C,\mathrm{corr}} = \frac{\dot{m}_a \sqrt{\theta_1}}{\delta_1}$$
-
-where:
-- $\theta_1 = \dfrac{T_{1,0}}{T_{\mathrm{ref}}}$
-- $\delta_1 = \dfrac{p_{1,0}}{p_{\mathrm{ref}}}$
-
----
-
-## Stage 2-3: Combustor
-
-**Stagnation pressure:**
+### Combustion Chamber (CC)
+Given the fuel-to-air ratio $f = \frac{\dot{m}_f}{\dot{m}_a}$, the combustor is modeled as ideal without total pressure losses ($\pi_B = 1$). The turbine inlet total temperature $T_{3,0}$ is found directly from the enthalpy energy balance:
 $$p_{3,0} = p_{2,0}$$
+$$\dot{m}_a c_p T_{2,0} + \dot{m}_f Q_f = (\dot{m}_a + \dot{m}_f) c_{p,gc} T_{3,0} \implies T_{3,0} = \frac{f Q_f + c_p T_{2,0}}{(1 + f) c_{p,gc}}$$
+The burner temperature ratio is designated as $\tau_B = \frac{T_{3,0}}{T_{2,0}}$.
 
-**Stagnation temperature:**
-$$T_{3,0} = \frac{f Q_f + c_p T_{2,0}}{(1+f)c_{p,\mathrm{gc}}}$$
+### Expansion Turbine
+In a single-spool configuration, the mechanical power extracted by the turbine must balance the power required by the compressor, assuming a purely rigid shaft coupling with a mechanical efficiency of unity:
+$$\mathcal{P}_C = \mathcal{P}_T \implies \dot{m}_a c_p (T_{2,0} - T_{1,0}) = (\dot{m}_a + \dot{m}_f) c_{p,gc} (T_{3,0} - T_{4,0})$$
+Rearranging the balance terms yields the non-dimensional turbine temperature drop ratio $\tau_T = \frac{T_{4,0}}{T_{3,0}}$:
+$$\tau_T = 1 - \frac{c_p}{c_{p,gc} \cdot \tau_B \cdot (1 + f)} \left( 1 - \frac{1}{\tau_C} \right)$$
+$$T_{4,0} = \tau_T \cdot T_{3,0}$$
 
-**Burner temperature ratio:**
-$$\tau_B = \frac{T_{3,0}}{T_{2,0}}$$
+Utilizing the design-point turbine adiabatic efficiency $\eta_T$, the corresponding expansion pressure ratio $\pi_T = \frac{p_{4,0}}{p_{3,0}}$ is computed:
+$$\pi_T = \left[ 1 - \frac{1}{\eta_T} (1 - \tau_T) \right]^{\frac{\gamma_{gc}}{\gamma_{gc} - 1}}$$
+$$p_{4,0} = \pi_T \cdot p_{3,0}$$
 
-**Burner pressure ratio:**
-$$\pi_B = \frac{p_{3,0}}{p_{2,0}} = 1.0$$
+### Exhaust Nozzle and Geometric Sizing
+The convergent nozzle expands the combustion gases back to the atmospheric pressure $p_0$. The code evaluates the occurrence of acoustic choking ($M_5 = 1$) by evaluating the critical pressure expansion ratio $\beta_{cr}$:
+$$\beta_{cr} = \left( \frac{\gamma_{gc} + 1}{2} \right)^{-\frac{\gamma_{gc}}{\gamma_{gc} - 1}}$$
 
-**Corrected mass flow (turbine inlet):**
-$$\dot{m}_{T,\mathrm{corr}} = \frac{\dot{m}_{\mathrm{gc}} \sqrt{\theta_3}}{\delta_3}$$
+* **Condition 1: Choked Nozzle** if $\frac{p_0}{p_{4,0}} > \beta_{cr}$:
+  $$M_5 = 1.0$$
+  $$p_5 = \frac{p_{4,0}}{\beta_{cr}}$$
+  $$T_5 = T_{4,0} \left( \frac{\gamma_{gc} + 1}{2} \right)^{-1}$$
 
-where $\dot{m}_{\mathrm{gc}} = (1+f)\dot{m}_a$
+* **Condition 2: Unchoked Nozzle** if $\frac{p_0}{p_{4,0}} \le \beta_{cr}$:
+  $$p_5 = p_0$$
+  $$M_5 = \sqrt{ \left[ \left( \frac{p_{4,0}}{p_0} \right)^{\frac{\gamma_{gc} - 1}{\gamma_{gc}}} - 1 \right] \frac{2}{\gamma_{gc} - 1} }$$
+  $$T_5 = \frac{T_{4,0}}{1 + \frac{\gamma_{gc}-1}{2} M_5^2}$$
 
----
+The physical exit velocity $V_5$, static density $\rho_5$, and the fixed geometric nozzle area $A_5$ (which forms an unalterable constraint in subsequent Off-Design operations) are defined by:
+$$V_5 = M_5 \sqrt{\gamma_{gc} R_{gc} T_5}, \quad \rho_5 = \frac{p_5}{R_{gc} T_5}$$
+$$A_5 = \frac{\dot{m}_a (1 + f)}{\rho_5 V_5}$$
 
-## Stage 3-4: Turbine
-
-**Temperature ratio:**
-$$\tau_T = 1 - \frac{c_p}{c_{p,\mathrm{gc}} \, \tau_B (1+f)} \left(1 - \frac{1}{\tau_C}\right)$$
-
-**Pressure ratio:**
-$$\pi_T = \left[1 - \frac{1}{\eta_T}(1 - \tau_T)\right]^{\frac{\gamma_{\mathrm{gc}}}{\gamma_{\mathrm{gc}}-1}}$$
-
-**Exit conditions:**
-$$T_{4,0} = \tau_T \cdot T_{3,0}, \quad p_{4,0} = \pi_T \cdot p_{3,0}$$
-
----
-
-## Stage 4-5: Nozzle
-
-**Critical pressure ratio:**
-$$\beta_{\mathrm{cr}} = \left(\frac{\gamma_{\mathrm{gc}}+1}{2}\right)^{-\frac{\gamma_{\mathrm{gc}}}{\gamma_{\mathrm{gc}}-1}}$$
-
-**Nozzle expansion condition:**
-
-- If $\beta > \beta_{\mathrm{cr}}$:
-  - $p_5 = p_0$
-  - $M_5 = \sqrt{\left[\left(\frac{1}{\beta}\right)^{\frac{\gamma_{\mathrm{gc}}-1}{\gamma_{\mathrm{gc}}}} - 1\right] \frac{2}{\gamma_{\mathrm{gc}}-1}}$
-
-- If $\beta \leq \beta_{\mathrm{cr}}$:
-  - $p_5 = \dfrac{p_{5,0}}{\beta_{\mathrm{cr}}}$
-  - $M_5 = 1.0$
+Net thrust output $F_{thrust}$ and Thrust Specific Fuel Consumption ($TSFC$) are evaluated as:
+$$F_{thrust} = \dot{m}_a \left[ (1 + f) V_5 - V_0 \right] + A_5 (p_5 - p_0)$$
+$$TSFC = \frac{\dot{m}_f}{F_{thrust}}$$
 
 ---
 
-## Exit Flow
+## 4. Component Map Mathematics and Scaling
 
-$$T_5 = \frac{T_{5,0}}{1 + \frac{\gamma_{\mathrm{gc}}-1}{2} M_5^2}$$
+In Off-Design match routines, the physical boundaries are frozen ($A_5 = \text{const}$), and component responses are extracted from experimental digitized maps. These maps operate using corrected, dimensionless variables that must be normalized against the Design Point values.
 
-$$a_5 = \sqrt{\gamma_{\mathrm{gc}} R_{\mathrm{gc}} T_5}$$
+### Corrected Map Parameters
+Mass flow rates and rotational spool speeds are corrected to eliminate the variations caused by inlet total temperature and pressure fluctuations:
+$$\dot{m}_{corr} = \dot{m} \frac{\sqrt{T_{in,0}/T_{ref}}}{p_{in,0}/p_{ref}}, \quad N_{corr} = \frac{N}{\sqrt{T_{in,0}/T_{ref}}}$$
 
-$$V_5 = M_5 a_5$$
+### Scaling Factors
+To map generic or commercial performance charts directly onto the calculated cycle's design point, linear scaling factors are established at the reference line:
 
-$$\rho_5 = \frac{p_5}{R_{\mathrm{gc}} T_5}, \quad A_5 = \frac{\dot{m}_{\mathrm{gc}}}{\rho_5 V_5}$$
+* **Compressore Scaling:**
+  $$f_{m,C} = \frac{\dot{m}_{C,dp}}{\dot{m}_{C,unscaled\_dp}}, \quad f_{PR,C} = \frac{\pi_{C,dp} - 1}{\pi_{C,unscaled\_dp} - 1}, \quad f_{\eta,C} = \frac{\eta_{C,dp}}{\eta_{C,unscaled\_dp}}$$
 
----
+* **Turbine Scaling:**
+  $$f_{m,T} = \frac{\dot{m}_{T,dp}}{\dot{m}_{T,unscaled\_dp}}, \quad f_{PR,T} = \frac{(1/\pi_{T,dp}) - 1}{PR_{T,unscaled\_dp} - 1}, \quad f_{\eta,T} = \frac{\eta_{T,dp}}{\eta_{T,unscaled\_dp}}$$
 
-## Performance Metrics
-
-**Thrust:**
-$$S = \dot{m}_a (1+f)V_5 - \dot{m}_a V_0 + A_5 (p_5 - p_0)$$
-
-**Compressor power extraction:**
-$$P_{\mathrm{ex}} = \dot{m}_a c_p (T_{2,0} - T_{1,0}) - \dot{m}_a (1+f) c_{p,\mathrm{gc}} (T_{3,0} - T_{4,0})$$
-
----
-
-## Component Maps
-
-**Scaling factors:**
-$$f_m = \frac{\dot{m}_{C,\mathrm{dp}}}{\dot{m}_{C,\mathrm{udp}}}, \quad f_{\mathrm{PR}} = \frac{\pi_{C,\mathrm{dp}} - 1}{\pi_{C,\mathrm{udp}} - 1}, \quad f_{\eta} = \frac{\eta_{C,\mathrm{dp}}}{\eta_{C,\mathrm{udp}}}$$
-
-**Scaled maps:**
-$$\dot{m}_{C,\mathrm{scaled}} = f_m \cdot \dot{m}_{C,\mathrm{ref}}$$
-$$\pi_{C,\mathrm{scaled}} = 1 + f_{\mathrm{PR}} (\pi_{C,\mathrm{ref}} - 1)$$
-$$\eta_{C,\mathrm{scaled}} = f_{\eta} \cdot \eta_{C,\mathrm{ref}}$$
+### Monotonic Interpolation Algorithm
+Data fetching inside `Compressor_map.py` and `Turbine_map.py` utilizes a advanced two-step procedure:
+1. **Speedline Boundary Location:** The script isolates the two nominal constant speedlines ($N_{corr}$) bounding the requested operational target speed.
+2. **Monotonic Spline Reconstruction:** A weighted intermediate curve is computed linearly based on percentage positioning. On this curve, a `PchipInterpolator` (`Piecewise Cubic Hermite Interpolating Polynomial`) from `scipy` is evaluated. Choosing `Pchip` is vital compared to traditional standard cubic splines because it **strictly preserves data monotonicity**, preventing numerical overshoot (*Runge's phenomenon*) that typically compromises solver convergence.
 
 ---
 
-## Turbine Map Scaling
+## 5. Off-Design Matching Framework
 
-**Scaling factors:**
-$$f_m = \frac{\dot{m}_{T,\mathrm{dp}}}{\dot{m}_{T,\mathrm{udp}}}, \quad f_{\mathrm{PR}} = \frac{\pi_{T,\mathrm{dp}} - 1}{\pi_{T,\mathrm{udp}} - 1}, \quad f_{\eta} = \frac{\eta_{T,\mathrm{dp}}}{\eta_{T,\mathrm{udp}}}$$
+During Off-Design excursions, the environmental state ($M_0, p_0, T_0$) is predefined, the nozzle area $A_5$ remains constant, and engine throttling is dictated by the user via the input parameter:
+$$\tau_{th} = \frac{T_{3,0}}{T_{1,0}}$$
 
-**Scaled maps:**
-$$\dot{m}_{T,\mathrm{scaled}} = f_m \cdot \dot{m}_{T,\mathrm{ref}}$$
-$$\pi_{T,\mathrm{scaled}} = 1 + f_{\mathrm{PR}} (\pi_{T,\mathrm{ref}} - 1)$$
-$$\eta_{T,\mathrm{scaled}} = f_{\eta} \cdot \eta_{T,\mathrm{ref}}$$
+### State Variable Vector ($X$)
+The non-linear engine component tracking loop contains 3 independent degrees of freedom, gathered into the state matrix $X \in \mathbb{R}^3$:
+$$X = \begin{bmatrix} X_0 \\ X_1 \\ X_2 \end{bmatrix} = \begin{bmatrix} \dot{m}_{C,corr} \\ N_{C,perc} \\ \pi_T \end{bmatrix}$$
+1. $\dot{m}_{C,corr}$: Corrected mass flow rate entering the compressor face.
+2. $N_{C,perc}$: Percentage/corrected rotational speed of the compressor spool.
+3. $\pi_T$: Total expansion pressure ratio across the turbine stage ($p_{4,0}/p_{3,0}$).
+
+### Error Residual Equations ($F(X)$)
+A physically consistent steady-state operating condition is established if and only if all three residual error functions in vector $F(X) = [f_1, f_2, f_3]^T$ converge identically to zero:
+
+1. **Turbine Mass Flow Continuity Error ($f_1$):**
+   The true physical mass flow transiting the turbine from cycle properties must match the corrected mass flow predicted by the scaled turbine performance chart:
+   $$\dot{m}_{T,cycle} = \dot{m}_{a,OD} \cdot (1 + f)$$
+   $$\dot{m}_{T,map} = \text{Turbine.Interpolate}\left(N_{T,corr}, \pi_T\right) \cdot \frac{p_{3,0}/p_{ref}}{\sqrt{T_{3,0}/T_{ref}}}$$
+   $$f_1 = \frac{\dot{m}_{T,map} - \dot{m}_{T,cycle}}{\dot{m}_{T,dp}} = 0$$
+
+2. **Nozzle Area Geometric Compatibility Error ($f_2$):**
+   The exhaust area required to expand the operational gas volume under current Off-Design constraints ($A_{5,OD}$) must match the unalterable physical throat dimension established during cycle design ($A_{5,dp}$):
+   $$f_2 = \frac{A_{5,dp} - A_{5,OD}}{A_{5,dp}} = 0$$
+
+3. **Spool Power Balance Error ($f_3$):**
+   For steady state operation (omitting transient engine acceleration or deceleration terms), the mechanical power absorbed by the compression stage must be exactly equal to the gas expansion power output by the turbine stage:
+   $$\mathcal{P}_{C,OD} = \dot{m}_{a,OD} \cdot c_p \cdot (T_{2,0,OD} - T_{1,0,OD})$$
+   $$\mathcal{P}_{T,OD} = \dot{m}_{a,OD} \cdot (1 + f) \cdot c_{p,gc} \cdot (T_{3,0,OD} - T_{4,0,OD})$$
+   $$f_3 = \frac{\mathcal{P}_{C,OD}}{\mathcal{P}_{T,OD}} - 1 = 0$$
 
 ---
 
-## Off-Design Analysis
+## 6. Newton-Raphson Multidimensional Numerical Solver
 
-**Throttle:**
-$$\tau_{\mathrm{th,OD}} = \tau_{\mathrm{th,DP}} \cdot \mathrm{th}$$
+The complex non-linear system $F(X) = 0$ is iteratively solved inside `MAIN_SP.py` via a quasi-analytical multi-variable Newton-Raphson numerical scheme.
+
+### State Vector Correction Step
+Starting from a given iteration step $k$, the subsequent approximation $X^{(k+1)}$ is formulated by solving the linear set against the local Jacobian matrix $J \in \mathbb{R}^{3 \times 3}$:
+$$X^{(k+1)} = X^{(k)} - [J(X^{(k)})]^{-1} F(X^{(k)})$$
+
+### Forward-Difference Jacobian Approximation
+Because map boundaries lack continuous analytical derivatives, the local gradient space is mapped numerically by introducing an infinitesimal forward perturbation step $\epsilon = 10^{-13}$ sequentially to each individual state variable:
+$$\Delta X_j = \epsilon \cdot X_j$$
+Each element of the Jacobian matrix $J_{i,j}$ is filled using the finite difference ratio:
+$$J_{i,j} = \frac{\partial f_i}{\partial X_j} \approx \frac{f_i(X_0, \dots, X_j + \Delta X_j, \dots, X_n) - f_i(X_0, \dots, X_j, \dots, X_n)}{\Delta X_j}$$
+
+The resulting structural topology of the system matrix is defined as:
+$$J = \begin{bmatrix} 
+\frac{\partial f_1}{\partial \dot{m}_{C,corr}} & \frac{\partial f_1}{\partial N_{C,perc}} & \frac{\partial f_1}{\partial \pi_T} \\ 
+\frac{\partial f_2}{\partial \dot{m}_{C,corr}} & \frac{\partial f_2}{\partial N_{C,perc}} & \frac{\partial f_2}{\partial \pi_T} \\ 
+\frac{\partial f_3}{\partial \dot{m}_{C,corr}} & \frac{\partial f_3}{\partial N_{C,perc}} & \frac{\partial f_3}{\partial \pi_T}
+\end{bmatrix}$$
+
+Matrix inversion and correction steps are computed efficiently via `scipy.linalg.solve()`, ensuring high stability and preventing numerical accumulation errors. The iteration loop terminates cleanly once the standard $L_2$ error norm meets a stringent absolute tolerance:
+$$\|F(X)\|_2 < 10^{-14}$$
 
 ---
 
-## Newton-Raphson
+## 7. Output Structures and Graphical Visualization
 
-$$\mathbf{X}^{(k+1)} = \mathbf{X}^{(k)} - J^{-1}(\mathbf{X}^{(k)})\mathbf{F}(\mathbf{X}^{(k)})$$
+Post-execution, the core routine transforms the array records into easily readable structures and triggers an advanced post-processing visualization:
+1. **`DP_param` and `OD_param`**: Structured Python dictionaries collecting every thermodynamic metric ($p, T, M, V$) at each internal engine station, alongside geometric data, thrust metrics, and global cycle thermal efficiencies.
+2. **Graphical Post-Processing**: Leveraging `matplotlib`, the system projects the entire scaled compressor performance envelope, tracing constant speedlines and explicitly marking both the **Design Point (DP)** and the solved **Off-Design (OD)** operating point. This provides engineers with immediate visual confirmation of the engine operating line and its safe distance from compressor surge/stall limits.
