@@ -173,6 +173,7 @@ A physically consistent steady-state operating condition is established if and o
 
 1. **Turbine Mass Flow Continuity Error ($f_1$):**
    The true physical mass flow transiting the turbine from cycle properties must match the corrected mass flow predicted by the scaled turbine performance chart:
+   
    $$\dot{m}_{T,\text{cycle}} = \dot{m}_{a,\text{OD}} \cdot (1 + f)$$
    
    $$\dot{m}_{T,\text{map}} = \text{Turbine.Interpolate}\left(N_{T,\text{corr}}, \pi_T\right) \cdot \frac{p_{3,0}/p_{\text{ref}}}{\sqrt{T_{3,0}/T_{\text{ref}}}}$$
@@ -181,9 +182,10 @@ A physically consistent steady-state operating condition is established if and o
 
 3. **Nozzle Area Geometric Compatibility Error ($f_2$):**
    The exhaust area required to expand the operational gas volume under current Off-Design constraints ($A_{5,\text{OD}}$) must match the unalterable physical throat dimension established during cycle design ($A_{5,\text{dp}}$):
+   
    $$f_2 = \frac{A_{5,\text{dp}} - A_{5,\text{OD}}}{A_{5,\text{dp}}} = 0$$
 
-4. **Spool Power Balance Error ($f_3$):**
+5. **Spool Power Balance Error ($f_3$):**
    For steady state operation (omitting transient engine acceleration or deceleration terms), the mechanical power absorbed by the compression stage must be exactly equal to the gas expansion power output by the turbine stage:
    
    $$\mathcal{P}_{C,\text{OD}} = \dot{m}_{a,\text{OD}} \cdot c_p \cdot (T_{2,0,\text{OD}} - T_{1,0,\text{OD}})$$
@@ -200,12 +202,16 @@ The complex non-linear system $F(X) = 0$ is iteratively solved inside `MAIN_SP.p
 
 ### State Vector Correction Step
 Starting from a given iteration step $k$, the subsequent approximation $X^{(k+1)}$ is formulated by solving the linear set against the local Jacobian matrix $J \in \mathbb{R}^{3 \times 3}$:
+
 $$X^{(k+1)} = X^{(k)} - [J(X^{(k)})]^{-1} F(X^{(k)})$$
 
 ### Forward-Difference Jacobian Approximation
 Because map boundaries lack continuous analytical derivatives, the local gradient space is mapped numerically by introducing an infinitesimal forward perturbation step $\epsilon = 10^{-13}$ sequentially to each individual state variable:
+
 $$\Delta X_j = \epsilon \cdot X_j$$
+
 Each element of the Jacobian matrix $J_{i,j}$ is filled using the finite difference ratio:
+
 $$J_{i,j} = \frac{\partial f_i}{\partial X_j} \approx \frac{f_i(X_0, \dots, X_j + \Delta X_j, \dots, X_n) - f_i(X_0, \dots, X_j, \dots, X_n)}{\Delta X_j}$$
 
 The resulting structural topology of the system matrix is defined as:
