@@ -1,6 +1,6 @@
 # Simple Turbojet Off-Design Analysis
 
-A Python-based simulation tool for analyzing single-spool turbojet performance at both design point and off-design operating conditions. This code implements thermodynamic analysis of turbojet components and uses component maps for realistic performance prediction.
+A Python-based simulation tool for analyzing single-spool turbojet performance at both design point and off-design operating conditions. This code implements thermodynamic analysis of turbojet components and map-based off-design solution methods.
 
 ## Overview
 
@@ -20,15 +20,16 @@ The analysis includes both:
 ### Input Parameters
 
 ```
-M_0 = 0.7           # Mach number at inlet
-p_0 = 41,059 Pa     # Static pressure at sea level
-T_0 = 242 K         # Static temperature at sea level
-ṁ_a = 20 kg/s       # Air mass flow rate
-π_C = 8.3           # Compressor pressure ratio
-η_C = 0.822         # Compressor isentropic efficiency
-η_T = 0.88          # Turbine isentropic efficiency
-f = 0.02            # Fuel-to-air ratio
-Q_f = 43.26 MJ/kg   # Fuel lower heating value
+# Input parameters (Python-friendly names)
+M_0   = 0.7              # Mach number at inlet
+p_0   = 41059            # Pa (static pressure at sea level)
+T_0   = 242              # K (static temperature at sea level)
+mdot_a = 20.0            # kg/s (air mass flow rate)
+pi_C  = 8.3              # Compressor pressure ratio
+eta_C = 0.822            # Compressor isentropic efficiency
+eta_T = 0.88             # Turbine isentropic efficiency
+f     = 0.02             # Fuel-to-air ratio
+Q_f   = 43.26e6          # J/kg (fuel lower heating value = 43.26 MJ/kg)
 ```
 
 ### Thermodynamic Properties
@@ -36,13 +37,13 @@ Q_f = 43.26 MJ/kg   # Fuel lower heating value
 | Property | Value | Unit |
 |----------|-------|------|
 | γ (air) | 1.4 | - |
-| γ (hot gas) | 1.33 | - |
+| γ_gc (hot gas) | 1.33 | - |
 | R (air) | 287 | J/(kg·K) |
-| R (hot gas) | 293 | J/(kg·K) |
+| R_gc (hot gas) | 293 | J/(kg·K) |
 | c_p (air) | 1004 | J/(kg·K) |
-| c_p (hot gas) | 1184 | J/(kg·K) |
+| c_{p,\text{gc}} (hot gas) | 1184 | J/(kg·K) |
 | T_ref | 273 | K |
-| p_ref | 101,315 | Pa |
+| p_ref | 101315 | Pa |
 
 ### Stage 0: Inlet (Ramjet Effect)
 
@@ -80,15 +81,15 @@ $$T_{2,0} = \tau_C \cdot T_{1,0}$$
 $$p_{2,0} = \pi_C \cdot p_{1,0}$$
 
 **Corrected mass flow (compressor):**
-$$\dot{m}_{C,\text{corr}} = \frac{\dot{m}_a \sqrt{\theta_1}}{\delta_1}$$
+$$\dot{m}_{C,\mathrm{corr}} = \frac{\dot{m}_a \sqrt{\theta_1}}{\delta_1}$$
 
 where:
-- $\theta_1 = \frac{T_{1,0}}{T_{\text{ref}}}$ (temperature ratio)
-- $\delta_1 = \frac{p_{1,0}}{p_{\text{ref}}}$ (pressure ratio)
+- $\theta_1 = \dfrac{T_{1,0}}{T_{\mathrm{ref}}}$ (temperature ratio)
+- $\delta_1 = \dfrac{p_{1,0}}{p_{\mathrm{ref}}}$ (pressure ratio)
 
 ### Stage 2-3: Combustor
 
-Fuel is injected and burned at constant pressure, heating the air.
+Fuel is injected and burned at (approximately) constant pressure, heating the air.
 
 **Stagnation pressure (constant):**
 $$p_{3,0} = p_{2,0}$$
@@ -103,16 +104,16 @@ $$\tau_B = \frac{T_{3,0}}{T_{2,0}}$$
 $$\pi_B = \frac{p_{3,0}}{p_{2,0}} = 1.0$$
 
 **Corrected mass flow (turbine inlet):**
-$$\dot{m}_{T,\text{corr}} = \frac{\dot{m}_{\text{gc}} \sqrt{\theta_3}}{\delta_3}$$
+$$\dot{m}_{T,\mathrm{corr}} = \frac{\dot{m}_{\mathrm{gc}} \sqrt{\theta_3}}{\delta_3}$$
 
-where $\dot{m}_{\text{gc}} = (1+f) \dot{m}_a$ (gas flow rate)
+where $\dot{m}_{\mathrm{gc}} = (1+f) \dot{m}_a$ (gas flow rate)
 
 ### Stage 3-4: Turbine
 
 The turbine extracts energy from hot gases to drive the compressor. Power balance constraint links turbine and compressor operation.
 
 **Turbine temperature ratio:**
-$$\tau_T = 1 - \frac{c_p}{c_{p,\text{gc}} \tau_B (1+f)} \left(1 - \frac{1}{\tau_C}\right)$$
+$$\tau_T = 1 - \frac{c_p}{c_{p,\text{gc}} \, \tau_B (1+f)} \left(1 - \frac{1}{\tau_C}\right)$$
 
 **Turbine pressure ratio:**
 $$\pi_T = \left[1 - \frac{1}{\eta_T}(1 - \tau_T)\right]^{\frac{\gamma_{\text{gc}}}{\gamma_{\text{gc}}-1}}$$
@@ -136,7 +137,7 @@ $$\beta_{\text{cr}} = \left(\frac{\gamma_{\text{gc}}+1}{2}\right)^{-\frac{\gamma
   - Exit Mach: $M_5 = \sqrt{\left[\left(\frac{1}{\beta}\right)^{\frac{\gamma_{\text{gc}}-1}{\gamma_{\text{gc}}}} - 1\right] \frac{2}{\gamma_{\text{gc}}-1}}$
 
 - If $\beta \leq \beta_{\text{cr}}$ (choked flow):
-  - Exit pressure: $p_5 = \frac{p_{5,0}}{\beta_{\text{cr}}}$
+  - Exit pressure: $p_5 = \dfrac{p_{5,0}}{\beta_{\text{cr}}}$
   - Exit Mach: $M_5 = 1.0$
 
 **Static temperature at nozzle exit:**
@@ -204,18 +205,18 @@ At off-design conditions, the system operates at different throttle settings whi
 
 ### Throttle Parameter
 
-The throttle fraction $\text{th}$ scales the design point thermal ratio:
+The throttle fraction $\mathrm{th}$ scales the design point thermal ratio:
 
-$$\tau_{\text{th,OD}} = \tau_{\text{th,DP}} \cdot \text{th}$$
+$$\tau_{\text{th,OD}} = \tau_{\text{th,DP}} \cdot \mathrm{th}$$
 
-For the analysis: $\text{th} = 0.85$ (85% throttle = 85% of design power)
+For the analysis: $\mathrm{th} = 0.85$ (85% throttle = 85% of design power)
 
 ### Off-Design Equations
 
 Given compressor mass flow $\dot{m}_C$, compressor speed $N_C$, and turbine pressure ratio $\pi_T$, the off-design system is solved using three governing equations:
 
 #### Equation 1: Turbine Speed Coupling (Energy Balance)
-$$f_1 = \frac{\dot{m}_{T,\text{corr}} - (1+f) \dot{m}_a \sqrt{\theta_3}/\delta_3}{\dot{m}_{T,\text{dp,corr}}}$$
+$$f_1 = \frac{\dot{m}_{T,\mathrm{corr}} - (1+f) \dot{m}_a \sqrt{\theta_3}/\delta_3}{\dot{m}_{T,\text{dp,corr}}}$$
 
 The turbine mass flow is determined from the turbine map at the coupled speed:
 $$N_T = N_C \sqrt{\frac{\tau_{\text{th,DP}}}{\tau_{\text{th,OD}}}}$$
