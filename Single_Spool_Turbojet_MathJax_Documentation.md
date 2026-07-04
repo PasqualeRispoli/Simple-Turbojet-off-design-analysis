@@ -132,6 +132,7 @@ $$\dot{m}_{\text{corr}} = \dot{m} \frac{\sqrt{T_{\text{in},0}/T_{\text{ref}}}}{p
 To map generic or commercial performance charts directly onto the calculated cycle's design point, linear scaling factors are established at the reference line. Every label is strictly protected within MathJax standard text blocks:
 
 * **Compressor Scaling Factors:**
+  
   $$f_{m,C} = \frac{\dot{m}_{C,\text{dp}}}{\dot{m}_{C,\text{unscaled,dp}}}$$
   
   $$f_{\text{PR},C} = \frac{\pi_{C,\text{dp}} - 1}{\pi_{C,\text{unscaled,dp}} - 1}$$
@@ -139,6 +140,7 @@ To map generic or commercial performance charts directly onto the calculated cyc
   $$f_{\eta,C} = \frac{\eta_{C,\text{dp}}}{\eta_{C,\text{unscaled,dp}}}$$
 
 * **Turbine Scaling Factors:**
+  
   $$f_{m,T} = \frac{\dot{m}_{T,\text{dp}}}{\dot{m}_{T,\text{unscaled,dp}}}$$
   
   $$f_{\text{PR},T} = \frac{(1/\pi_{T,\text{dp}}) - 1}{\pi_{T,\text{unscaled,dp}} - 1}$$
