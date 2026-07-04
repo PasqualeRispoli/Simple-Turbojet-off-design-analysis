@@ -364,6 +364,8 @@ $$
 p_{50}=p_{40}\pi_N
 $$
 
+Applying the same sonic choking logic ($\beta$ vs $\beta^*$), the physical properties at the nozzle exit are
+
 $$
 T_5
 =
@@ -390,7 +392,7 @@ $$
 
 # ⚖️ 3. Matching Equations
 
-### Turbine mass-flow continuity
+### Turbine Mass Flow Continuity
 
 $$
 \dot{m}_{T,\mathrm{map}}
@@ -399,7 +401,7 @@ $$
 \frac{\sqrt{\theta_3}}{\delta_3}
 $$
 
-### Nozzle area
+### Nozzle Area Consistency
 
 $$
 A_5
@@ -413,7 +415,7 @@ A_5
 A_{5,\mathrm{DP}}
 $$
 
-### Shaft power balance
+### Shaft Power Balance
 
 $$
 \dot{m}_a
