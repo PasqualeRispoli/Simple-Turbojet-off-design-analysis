@@ -38,7 +38,7 @@ At the Design Point, structural constraints, component efficiencies, reference m
   $$\tau_B = \frac{T_{30}}{T_{20}}, \quad p_{30} = p_{20}$$
 
 * **Turbine (Station 3 -> 4):**
-  Based on the rotor shaft power balance, the power extracted by the turbine must balance the power absorbed by the compressor ($\mathcal{P}_T = \mathcal{P}_C$)[cite: 6]:
+  Based on the rotor shaft power balance, the power extracted by the turbine must balance the power absorbed by the compressor ($P_T = P_C$)[cite: 6]:
   $$(1+f)c_{p,gc}(T_{30} - T_{40}) = c_p (T_{20} - T_{10})$$
   $$\tau_T = 1 - \frac{c_p}{c_{p,gc} \cdot \tau_B \cdot (1+f)} \left( 1 - \frac{1}{\tau_C} \right)$$
   The expansion pressure ratio $\pi_T$ is calculated using the turbine efficiency $\eta_T$[cite: 6]:
@@ -62,7 +62,7 @@ At the Design Point, structural constraints, component efficiencies, reference m
 During Off-Design maneuvers, the throat/exit area of the nozzle ($A_{5,dp}$) remains fixed[cite: 6]. The engine operational state reacts to changes in throttle inputs, defined by the cycle temperature ratio $\tau_{th} = T_{30}/T_{10}$[cite: 6].
 
 The matching solver finds the three-dimensional unknown state vector[cite: 6]:
-$$X = \begin{bmatrix} \dot{m}_{C,corr} \\ N_{C,corr} \\ \pi_T \end{bmatrix}$$
+$$X = [\dot{m}_{C,corr}, \, N_{C,corr}, \, \pi_T]^T$$
 
 This vector satisfies the zero-residual convergence condition $F(X) = 0$ for three non-linear physical matching equations[cite: 6]:
 1. **Turbine Mass Flow Continuity ($f_1$):** Ensures the mass flow from the turbine map matches the physical flow coming from the combustion chamber[cite: 6].
