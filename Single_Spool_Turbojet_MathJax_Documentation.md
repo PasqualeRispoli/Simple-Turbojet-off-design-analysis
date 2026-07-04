@@ -167,7 +167,7 @@ $$X = \begin{bmatrix} \dot{m}_{C,\text{corr}} \\ N_{C,\text{perc}} \\ \pi_T \end
 2. $N_{C,\text{perc}}$: Percentage/corrected rotational speed of the compressor spool.
 3. $\pi_T$: Total expansion pressure ratio across the turbine stage ($p_{4,0}/p_{3,0}$).
 
-### Error Residual Equations ($F(X)$)
+### Error Residual Equations ( $F(X)$ )
 
 A physically consistent steady-state operating condition is established if and only if all three residual error functions in vector $F(X) = [f_1, f_2, f_3]^T$ converge identically to zero:
 
