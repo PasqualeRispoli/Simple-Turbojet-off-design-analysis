@@ -176,17 +176,17 @@ A physically consistent steady-state operating condition is established if and o
 1. **Turbine Mass Flow Continuity Error ($f_1$):**
    The true physical mass flow transiting the turbine from cycle properties must match the corrected mass flow predicted by the scaled turbine performance chart:
    
-   $$\dot{m}_{T,\text{cycle}} = \dot{m}_{a,\text{OD}}  (1 + f)$$
-   
-   $$\dot{m}_{T,\text{map}} = \text{Turbine.Interpolate}\left(N_{T,\text{corr}}, \pi_T\right)  \frac{p_{3,0}/p_{\text{ref}}}{\sqrt{T_{3,0}/T_{\text{ref}}}}$$
-   
-   $$f_1 = \frac{\dot{m}_{T,\text{map}} - \dot{m}_{T,\text{cycle}}}{\dot{m}_{T,\text{dp}}} = 0$$
+$$\dot{m}_{T,\text{cycle}} = \dot{m}_{a,\text{OD}}  (1 + f)$$
+
+$$\dot{m}_{T,\text{map}} = \text{Turbine.Interpolate}\left(N_{T,\text{corr}}, \pi_T\right)  \frac{p_{3,0}/p_{\text{ref}}}{\sqrt{T_{3,0}/T_{\text{ref}}}}$$
+
+$$f_1 = \frac{\dot{m}_{T,\text{map}} - \dot{m}_{T,\text{cycle}}}{\dot{m}_{T,\text{dp}}} = 0$$
 
 3. **Nozzle Area Geometric Compatibility Error ( $f_2$ ):** 
 
    The exhaust area required to expand the operational gas volume under current Off-Design constraints ($A_{5,\text{OD}}$) must match the unalterable physical throat dimension established during cycle design ( $A_{5,\text{dp}}$ ):
    
-   $$f_2 = \frac{A_{5,\text{dp}} - A_{5,\text{OD}}}{A_{5,\text{dp}}} = 0$$
+$$f_2 = \frac{A_{5,\text{dp}} - A_{5,\text{OD}}}{A_{5,\text{dp}}} = 0$$
 
 5. **Spool Power Balance Error ($f_3$):**
    For steady state operation (omitting transient engine acceleration or deceleration terms), the mechanical power absorbed by the compression stage must be exactly equal to the gas expansion power output by the turbine stage:
