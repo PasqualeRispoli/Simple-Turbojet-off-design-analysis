@@ -34,11 +34,11 @@ To achieve high physical fidelity, the model accounts for the variations in spec
 | `T_ref` | $T_{\text{ref}}$ | $273.0$ | $\text{K}$ | Standard reference temperature for corrected parameters |
 | `p_ref` | $p_{\text{ref}}$ | $101315.0$ | $\text{Pa}$ | Standard reference pressure for corrected parameters |
 | `cp` | $c_p$ | $1004.0$ | $\text{J}/(\text{kg}\cdot\text{K})$ | Specific heat at constant pressure - Air (Stations 0 to 2) |
-| `cp_gc` | $c_{p,\text{gc}}$ | $1184.0$ | $\text{J}/(\text{kg}\cdot\text{K})$ | Specific heat at constant pressure - Gas Burned (Stations 3 to 5) |
+| `cp_gc` | $c_{p,\text{gc}}$ | $1184.0$ | $\text{J}/(\text{kg}\text{K})$ | Specific heat at constant pressure - Gas Burned (Stations 3 to 5) |
 | `gamma` | $\gamma$ | $1.40$ | $-$ | Ratio of specific heats - Air (Stations 0 to 2) |
 | `gamma_gc` | $\gamma_{\text{gc}}$ | $1.33$ | $-$ | Ratio of specific heats - Gas Burned (Stations 3 to 5) |
-| `R` | $R$ | $287.0$ | $\text{J}/(\text{kg}\cdot\text{K})$ | Gas constant for air |
-| `R_gc` | $R_{\text{gc}}$ | $293.0$ | $\text{J}/(\text{kg}\cdot\text{K})$ | Gas constant for combustion products |
+| `R` | $R$ | $287.0$ | $\text{J}/(\text{kg}\text{K})$ | Gas constant for air |
+| `R_gc` | $R_{\text{gc}}$ | $293.0$ | $\text{J}/(\text{kg}\text{K})$ | Gas constant for combustion products |
 | `Q_f` | $Q_f$ | $43260000.0$ | $\text{J}/\text{kg}$ | Lower heating value of aviation fuel (Jet-A) |
 
 ---
@@ -50,17 +50,17 @@ During Design Point synthesis, geometric restrictions are absent, and engine par
 ### Flight Conditions and Intake
 Given the flight Mach number $M_0$, ambient static pressure $p_0$, and ambient static temperature $T_0$, the stagnation conditions at the compressor face (Station 1) are derived assuming an ideal ram recovery process (isobaric intake, $\pi_{\text{IN}} = 1$):
 $$a_0 = \sqrt{\gamma R T_0}$$
-$$V_0 = M_0 \cdot a_0$$
+$$V_0 = M_0  a_0$$
 $$T_{0,0} = T_{1,0} = T_0 \left( 1 + \frac{\gamma - 1}{2} M_0^2 \right)$$
 $$p_{0,0} = p_{1,0} = p_0 \left( 1 + \frac{\gamma - 1}{2} M_0^2 \right)^{\frac{\gamma}{\gamma - 1}}$$
 
 ### Compression System
 With the design pressure ratio $\pi_C$ and compressor isentropic efficiency $\eta_C$ specified, the stagnation state at Station 2 is determined by:
-$$p_{2,0} = \pi_C \cdot p_{1,0}$$
+$$p_{2,0} = \pi_C  p_{1,0}$$
 
 $$\tau_C = 1 + \frac{1}{\eta_C} \left( \pi_C^{\frac{\gamma - 1}{\gamma}} - 1 \right)$$
 
-$$T_{2,0} = \tau_C \cdot T_{1,0}$$
+$$T_{2,0} = \tau_C  T_{1,0}$$
 
 ### Combustion Chamber (CC)
 Given the fuel-to-air ratio $f = \frac{\dot{m}_f}{\dot{m}_a}$ , the combustor is modeled as ideal without total pressure losses ( $\pi_B = 1$ ). The turbine inlet total temperature $T_{3,0}$ is found directly from the enthalpy energy balance:
@@ -77,15 +77,15 @@ $$\mathcal{P}_C = \mathcal{P}_T \implies \dot{m}_a c_p (T_{2,0} - T_{1,0}) = (\d
 
 Rearranging the balance terms yields the non-dimensional turbine temperature drop ratio $\tau_T = \frac{T_{4,0}}{T_{3,0}}$:
 
-$$\tau_T = 1 - \frac{c_p}{c_{p,\text{gc}} \cdot \tau_B \cdot (1 + f)} \left( 1 - \frac{1}{\tau_C} \right)$$
+$$\tau_T = 1 - \frac{c_p}{c_{p,\text{gc}}  \tau_B  (1 + f)} \left( 1 - \frac{1}{\tau_C} \right)$$
 
-$$T_{4,0} = \tau_T \cdot T_{3,0}$$
+$$T_{4,0} = \tau_T  T_{3,0}$$
 
 Utilizing the design-point turbine adiabatic efficiency $\eta_T$, the corresponding expansion pressure ratio $\pi_T = \frac{p_{4,0}}{p_{3,0}}$ is computed:
 
 $$\pi_T = \left[ 1 - \frac{1}{\eta_T} (1 - \tau_T) \right]^{\frac{\gamma_{\text{gc}}}{\gamma_{\text{gc}} - 1}}$$
 
-$$p_{4,0} = \pi_T \cdot p_{3,0}$$
+$$p_{4,0} = \pi_T  p_{3,0}$$
 
 ### Exhaust Nozzle and Geometric Sizing
 The convergent nozzle expands the combustion gases back to the atmospheric pressure $p_0$. The code evaluates the occurrence of acoustic choking ($M_5 = 1$) by evaluating the critical pressure expansion ratio $\beta_{\text{cr}}$:
@@ -176,9 +176,9 @@ A physically consistent steady-state operating condition is established if and o
 1. **Turbine Mass Flow Continuity Error ($f_1$):**
    The true physical mass flow transiting the turbine from cycle properties must match the corrected mass flow predicted by the scaled turbine performance chart:
    
-   $$\dot{m}_{T,\text{cycle}} = \dot{m}_{a,\text{OD}} \cdot (1 + f)$$
+   $$\dot{m}_{T,\text{cycle}} = \dot{m}_{a,\text{OD}}  (1 + f)$$
    
-   $$\dot{m}_{T,\text{map}} = \text{Turbine.Interpolate}\left(N_{T,\text{corr}}, \pi_T\right) \cdot \frac{p_{3,0}/p_{\text{ref}}}{\sqrt{T_{3,0}/T_{\text{ref}}}}$$
+   $$\dot{m}_{T,\text{map}} = \text{Turbine.Interpolate}\left(N_{T,\text{corr}}, \pi_T\right)  \frac{p_{3,0}/p_{\text{ref}}}{\sqrt{T_{3,0}/T_{\text{ref}}}}$$
    
    $$f_1 = \frac{\dot{m}_{T,\text{map}} - \dot{m}_{T,\text{cycle}}}{\dot{m}_{T,\text{dp}}} = 0$$
 
