@@ -190,12 +190,12 @@ A physically consistent steady-state operating condition is established if and o
 
 5. **Spool Power Balance Error ($f_3$):**
    For steady state operation (omitting transient engine acceleration or deceleration terms), the mechanical power absorbed by the compression stage must be exactly equal to the gas expansion power output by the turbine stage:
-   
-   $$\mathcal{P}_{C,\text{OD}} = \dot{m}_{a,\text{OD}} \cdot c_p \cdot (T_{2,0,\text{OD}} - T_{1,0,\text{OD}})$$
-   
-   $$\mathcal{P}_{T,\text{OD}} = \dot{m}_{a,\text{OD}} \cdot (1 + f) \cdot c_{p,\text{gc}} \cdot (T_{3,0,\text{OD}} - T_{4,0,\text{OD}})$$
-   
-   $$f_3 = \frac{\mathcal{P}_{C,\text{OD}}}{\mathcal{P}_{T,\text{OD}}} - 1 = 0$$
+
+$$P_{C,\text{OD}} = \dot{m}_{a,\text{OD}}  c_p  (T_{2,0,\text{OD}} - T_{1,0,\text{OD}})$$
+
+$$P_{T,\text{OD}} = \dot{m}_{a,\text{OD}} \cdot (1 + f)  c_{p,\text{gc}}  (T_{3,0,\text{OD}} - T_{4,0,\text{OD}})$$
+
+$$f_3 = \frac{P_{C,\text{OD}}}{\mathcal{P}_{T,\text{OD}}} - 1 = 0$$
 
 ---
 
