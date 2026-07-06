@@ -193,9 +193,9 @@ A physically consistent steady-state operating condition is established if and o
 
 $$P_{C,\text{OD}} = \dot{m}_{a,\text{OD}}  c_p  (T_{2,0,\text{OD}} - T_{1,0,\text{OD}})$$
 
-$$P_{T,\text{OD}} = \dot{m}_{a,\text{OD}} \cdot (1 + f)  c_{p,\text{gc}}  (T_{3,0,\text{OD}} - T_{4,0,\text{OD}})$$
+$$P_{T,\text{OD}} = \dot{m}_{a,\text{OD}} (1 + f)  c_{p,\text{gc}}  (T_{3,0,\text{OD}} - T_{4,0,\text{OD}})$$
 
-$$f_3 = \frac{P_{C,\text{OD}}}{\mathcal{P}_{T,\text{OD}}} - 1 = 0$$
+$$f_3 = \frac{P_{C,\text{OD}}}{P_{T,\text{OD}}} - 1 = 0$$
 
 ---
 
