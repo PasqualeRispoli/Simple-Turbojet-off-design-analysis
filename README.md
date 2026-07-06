@@ -231,7 +231,7 @@ $$\|F(X)\|_2 < 10^{-14}$$
 
 ---
 
-## 7. Output Structures and Graphical Visualization
+## 7. Output and Graphical Visualization
 
 Post-execution, the core routine transforms the array records into easily readable structures and triggers an advanced post-processing visualization:
 1. **`DP_param` and `OD_param`**: Structured Python dictionaries collecting every thermodynamic metric ($p, T, M, V$) at each internal engine station, alongside geometric data, thrust metrics, and global cycle thermal efficiencies.
